@@ -176,8 +176,9 @@ class BaseObjectHelper(object):
 
     def patch_object(self, name, namespace, k8s_obj):
         self.logger.debug('Starting patch object')
-        empty_status = self.properties['status']['class']()
-        k8s_obj.status = empty_status
+        if 'status' in self.properties:
+            empty_status = self.properties['status']['class']()
+            k8s_obj.status = empty_status
         k8s_obj.metadata.resource_version = None
         self.__remove_creation_timestamps(k8s_obj)
         w, stream = self._create_stream(namespace)
@@ -490,10 +491,10 @@ class BaseObjectHelper(object):
             if action == 'delete':
                 if not obj:
                     break
-            elif obj and obj.status and hasattr(obj.status, 'phase'):
+            elif obj and hasattr(obj, 'status') and hasattr(obj.status, 'phase'):
                 if obj.status.phase == 'Active':
                     break
-            elif obj and obj.status:
+            elif obj and hasattr(obj, 'status'):
                 break
             tries += 2
             time.sleep(2)
